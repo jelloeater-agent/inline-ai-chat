@@ -39,7 +39,8 @@ class InlineAIChatSettingsConfigurable : Configurable {
     override fun isModified(): Boolean {
         val component = settingsComponent ?: return false
         val settings = InlineAIChatSettingsState.instance
-        return settings.openRouterApiKey != component.getOpenRouterApiKey() ||
+        return settings.apiBaseUrl != component.getApiBaseUrl() ||
+                settings.openRouterApiKey != component.getOpenRouterApiKey() ||
                 settings.selectedModel != component.getSelectedModel() ||
                 settings.systemPrompt != component.getSystemPrompt()
     }
@@ -47,6 +48,7 @@ class InlineAIChatSettingsConfigurable : Configurable {
     override fun apply() {
         val component = settingsComponent ?: return
         val settings = InlineAIChatSettingsState.instance
+        settings.apiBaseUrl = component.getApiBaseUrl()
         settings.openRouterApiKey = component.getOpenRouterApiKey()
         settings.selectedModel = component.getSelectedModel() ?: settings.selectedModel
         settings.systemPrompt = component.getSystemPrompt()
@@ -55,6 +57,7 @@ class InlineAIChatSettingsConfigurable : Configurable {
     override fun reset() {
         val component = settingsComponent ?: return
         val settings = InlineAIChatSettingsState.instance
+        component.setApiBaseUrl(settings.apiBaseUrl)
         component.setOpenRouterApiKey(settings.openRouterApiKey)
         component.setSelectedModel(settings.selectedModel)
         component.setSystemPrompt(settings.systemPrompt)
@@ -66,8 +69,12 @@ class InlineAIChatSettingsConfigurable : Configurable {
 }
 
 class InlineAIChatSettingsComponent {
+    private val apiBaseUrlField = JBTextField().apply {
+        emptyText.text = "https://openrouter.ai/api/v1"
+        preferredSize = Dimension(500, JBUI.scale(30))
+    }
     private val apiKeyField = JBPasswordField().apply {
-        emptyText.text = "Enter your OpenRouter API key here..."
+        emptyText.text = "Optional for local providers (Ollama, Headroom)"
         echoChar = '•'
         preferredSize = Dimension(500, JBUI.scale(30))
     }
@@ -95,13 +102,16 @@ class InlineAIChatSettingsComponent {
     private var initialModel: String = InlineAIChatSettingsState.instance.selectedModel
 
     val panel: DialogPanel = panel {
-        group("OpenRouter") {
+        group("Provider") {
+            row("Base URL:") {
+                cell(apiBaseUrlField).align(AlignX.FILL)
+            }.comment("OpenAI-compatible endpoint. Examples: https://openrouter.ai/api/v1, http://localhost:11434/v1, http://localhost:8787/api/v1 (Headroom)")
             row("API Key:") {
                 cell(apiKeyField).align(AlignX.FILL)
                 cell(showApiKeyCheckBox)
             }
             row {
-                cell(apiKeyLink)
+                cell(apiKeyLink).visible(apiBaseUrlField.text.contains("openrouter"))
             }
         }
 
@@ -162,6 +172,11 @@ class InlineAIChatSettingsComponent {
     private fun getQuickSettingsShortcut(): String {
         val action = ActionManager.getInstance().getAction("com.github.roscrl.inlineaichat.actions.QuickSettingsAction")
         return KeymapUtil.getFirstKeyboardShortcutText(action)
+    }
+
+    fun getApiBaseUrl(): String = apiBaseUrlField.text.trim()
+    fun setApiBaseUrl(url: String) {
+        apiBaseUrlField.text = url
     }
 
     fun getOpenRouterApiKey(): String = String(apiKeyField.password)
@@ -252,10 +267,13 @@ class ManageModelsDialog : DialogWrapper(true) {
 
         panel.add(decorator, BorderLayout.CENTER)
 
-        val modelsLink = HyperlinkLabel("View available models on OpenRouter").apply {
-            setHyperlinkTarget("https://openrouter.ai/models")
+        val baseUrl = InlineAIChatSettingsState.instance.apiBaseUrl
+        if (baseUrl.contains("openrouter")) {
+            val modelsLink = HyperlinkLabel("View available models on OpenRouter").apply {
+                setHyperlinkTarget("https://openrouter.ai/models")
+            }
+            panel.add(modelsLink, BorderLayout.SOUTH)
         }
-        panel.add(modelsLink, BorderLayout.SOUTH)
 
         panel.preferredSize = JBUI.size(400, 300)
         return panel
