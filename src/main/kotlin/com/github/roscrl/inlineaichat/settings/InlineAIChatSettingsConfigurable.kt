@@ -267,14 +267,63 @@ class ManageModelsDialog : DialogWrapper(true) {
 
         panel.add(decorator, BorderLayout.CENTER)
 
+        // Bottom panel with Fetch button and optional link
+        val bottomPanel = JPanel(BorderLayout())
+
+        val fetchButton = JButton("Fetch from API").apply {
+            addActionListener {
+                val settings = InlineAIChatSettingsState.instance
+                text = "Fetching..."
+                isEnabled = false
+                SwingUtilities.invokeLater {
+                    try {
+                        val fetched = com.github.roscrl.llm.config.ModelConfig.fetchModelsFromApi(
+                            settings.apiBaseUrl,
+                            settings.openRouterApiKey
+                        )
+                        if (fetched.isNotEmpty()) {
+                            settings.models.clear()
+                            settings.models.addAll(fetched)
+                            if (settings.selectedModel !in settings.models) {
+                                settings.selectedModel = settings.models.first()
+                            }
+                            refreshModels()
+                            Messages.showInfoMessage(
+                                this@ManageModelsDialog.contentPanel,
+                                "Loaded ${fetched.size} models from API.",
+                                "Models Fetched"
+                            )
+                        } else {
+                            Messages.showWarningDialog(
+                                this@ManageModelsDialog.contentPanel,
+                                "No models returned from ${settings.apiBaseUrl}.\nCheck the URL and API key.",
+                                "Fetch Failed"
+                            )
+                        }
+                    } catch (e: Exception) {
+                        Messages.showErrorDialog(
+                            this@ManageModelsDialog.contentPanel,
+                            "Error fetching models: ${e.message}",
+                            "Fetch Error"
+                        )
+                    } finally {
+                        text = "Fetch from API"
+                        isEnabled = true
+                    }
+                }
+            }
+        }
+        bottomPanel.add(fetchButton, BorderLayout.WEST)
+
         val baseUrl = InlineAIChatSettingsState.instance.apiBaseUrl
         if (baseUrl.contains("openrouter")) {
             val modelsLink = HyperlinkLabel("View available models on OpenRouter").apply {
                 setHyperlinkTarget("https://openrouter.ai/models")
             }
-            panel.add(modelsLink, BorderLayout.SOUTH)
+            bottomPanel.add(modelsLink, BorderLayout.EAST)
         }
 
+        panel.add(bottomPanel, BorderLayout.SOUTH)
         panel.preferredSize = JBUI.size(400, 300)
         return panel
     }

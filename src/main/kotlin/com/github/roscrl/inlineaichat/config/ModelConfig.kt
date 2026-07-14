@@ -6,13 +6,20 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.io.IOException
 import java.io.InputStreamReader
+import java.util.concurrent.TimeUnit
 
 object ModelConfig {
     private val logger = Logger.getInstance(ModelConfig::class.java)
     private const val DEFAULT_MODEL = "anthropic/claude-3.5-sonnet"
     private val json = Json { ignoreUnknownKeys = true }
+    private val httpClient = OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(10, TimeUnit.SECONDS)
+        .build()
 
     val defaultModels: List<String> by lazy {
         try {
@@ -26,6 +33,54 @@ object ModelConfig {
             listOf(DEFAULT_MODEL).also {
                 logger.info("Using fallback model: $DEFAULT_MODEL")
             }
+        }
+    }
+
+    /**
+     * Fetch available models from an OpenAI-compatible /models endpoint.
+     * Returns sorted model IDs, or empty list on failure.
+     */
+    fun fetchModelsFromApi(baseUrl: String, apiKey: String = ""): List<String> {
+        val url = "${baseUrl.trimEnd('/')}/models"
+        logger.info("Fetching models from $url")
+
+        return try {
+            val request = Request.Builder()
+                .url(url)
+                .apply {
+                    if (apiKey.isNotEmpty()) {
+                        addHeader("Authorization", "Bearer $apiKey")
+                    }
+                }
+                .get()
+                .build()
+
+            httpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    logger.warn("Failed to fetch models: HTTP ${response.code}")
+                    return emptyList()
+                }
+
+                val body = response.body?.string() ?: return emptyList()
+                val root = json.parseToJsonElement(body).jsonObject
+
+                // Standard OpenAI format: {"data": [{"id": "model-name", ...}]}
+                val dataArray = root["data"]?.jsonArray ?: return emptyList()
+
+                val models = dataArray.mapNotNull { element ->
+                    try {
+                        element.jsonObject["id"]?.jsonPrimitive?.content
+                    } catch (e: Exception) {
+                        null
+                    }
+                }.sorted()
+
+                logger.info("Fetched ${models.size} models from API")
+                models
+            }
+        } catch (e: Exception) {
+            logger.warn("Error fetching models from API: ${e.message}")
+            emptyList()
         }
     }
 
@@ -80,4 +135,4 @@ object ModelConfig {
     }
 }
 
-class ModelConfigException(message: String, cause: Throwable? = null) : Exception(message, cause) 
+class ModelConfigException(message: String, cause: Throwable? = null) : Exception(message, cause)
