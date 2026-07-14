@@ -41,6 +41,7 @@ Plugin manifest: `src/main/resources/META-INF/plugin.xml`
 - **Publishing** requires env vars: `CERTIFICATE_CHAIN`, `PRIVATE_KEY`, `PRIVATE_KEY_PASSWORD`, `PUBLISH_TOKEN`. Version determines release channel (pre-release label after `-`).
 - **Kotlin serialization plugin** is applied manually in build.gradle.kts (not via version catalog). Version `2.1.0` — keep in sync with Kotlin version if upgrading.
 - **OkHttp SSE** is used for streaming (`okhttp-sse` dependency). The 500-minute timeouts are intentional for long streams.
+- **API endpoint is configurable** — `apiBaseUrl` setting (default: OpenRouter). Works with Ollama (`http://localhost:11434/v1`), Headroom proxy (`http://localhost:8787/api/v1`), or any OpenAI-compatible endpoint. API key is optional for non-OpenRouter providers.
 - **Configuration cache is disabled** (`org.gradle.configuration-cache = false` in gradle.properties).
 
 ## Testing
