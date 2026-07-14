@@ -17,6 +17,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil
 class InlineAIChatSettingsState : PersistentStateComponent<InlineAIChatSettingsState> {
     private val logger = Logger.getInstance(InlineAIChatSettingsState::class.java)
 
+    var apiBaseUrl: String = "https://openrouter.ai/api/v1"
     var openRouterApiKey: String = ""
     var selectedModel: String
         get() = _selectedModel ?: availableModels.firstOrNull() ?: ""

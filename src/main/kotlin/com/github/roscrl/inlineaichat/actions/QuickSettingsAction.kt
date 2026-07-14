@@ -123,14 +123,17 @@ private class QuickSettingsDialog : DialogWrapper(true) {
         
         panel.add(decorator, BorderLayout.CENTER)
         
-        val modelsLink = HyperlinkLabel("View available models on OpenRouter").apply {
-            setHyperlinkTarget("https://openrouter.ai/models")
+        val baseUrl = InlineAIChatSettingsState.instance.apiBaseUrl
+        if (baseUrl.contains("openrouter")) {
+            val modelsLink = HyperlinkLabel("View available models on OpenRouter").apply {
+                setHyperlinkTarget("https://openrouter.ai/models")
+            }
+            val linkPanel = JPanel(BorderLayout()).apply {
+                add(modelsLink, BorderLayout.CENTER)
+                border = JBUI.Borders.empty(5)
+            }
+            panel.add(linkPanel, BorderLayout.SOUTH)
         }
-        val linkPanel = JPanel(BorderLayout()).apply {
-            add(modelsLink, BorderLayout.CENTER)
-            border = JBUI.Borders.empty(5)
-        }
-        panel.add(linkPanel, BorderLayout.SOUTH)
         
         panel.preferredSize = JBUI.size(300, 400)
         return panel

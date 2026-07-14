@@ -180,17 +180,19 @@ class StreamTextAction : AnAction() {
             val settings = InlineAIChatSettingsState.instance
             logger.debug("Starting ${settings.selectedModel} response stream: contextLength=${context.length}")
 
-            if (settings.openRouterApiKey.isEmpty()) {
-                logger.warn("OpenRouter API key not configured")
+            // API key is only required for providers that need auth (e.g. OpenRouter)
+            val needsAuth = settings.apiBaseUrl.contains("openrouter")
+            if (needsAuth && settings.openRouterApiKey.isEmpty()) {
+                logger.warn("API key required for this provider but not configured")
                 WriteCommandAction.runWriteCommandAction(project) {
                     editor.document.insertString(
                         initialOffset,
-                        "Please configure your OpenRouter API key in Settings -> Tools -> Inline AI Chat Settings\n"
+                        "Please configure your API key in Settings -> Tools -> Inline AI Chat Settings\n"
                     )
                 }
                 NotificationUtil.showWarning(
                     title = "Configuration Required",
-                    content = "Please configure your OpenRouter API key in Settings -> Tools -> Inline AI Chat Settings",
+                    content = "Please configure your API key in Settings -> Tools -> Inline AI Chat Settings",
                     project = project
                 )
                 isStreaming.set(false)
@@ -221,8 +223,12 @@ class StreamTextAction : AnAction() {
             }
 
             val request = Request.Builder()
-                .url("https://openrouter.ai/api/v1/chat/completions")
-                .addHeader("Authorization", "Bearer ${settings.openRouterApiKey}")
+                .url("${settings.apiBaseUrl.trimEnd('/')}/chat/completions")
+                .apply {
+                    if (settings.openRouterApiKey.isNotEmpty()) {
+                        addHeader("Authorization", "Bearer ${settings.openRouterApiKey}")
+                    }
+                }
                 .post(requestBody)
                 .build()
 
