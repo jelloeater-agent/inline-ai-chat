@@ -41,7 +41,9 @@ object ModelConfig {
      * Returns sorted model IDs, or empty list on failure.
      */
     fun fetchModelsFromApi(baseUrl: String, apiKey: String = ""): List<String> {
-        val url = "${baseUrl.trimEnd('/')}/models"
+        // Handle both cases: baseUrl with or without /v1 suffix
+        val base = baseUrl.trimEnd('/')
+        val url = if (base.endsWith("/v1")) "$base/models" else "$base/v1/models"
         logger.info("Fetching models from $url")
 
         return try {
