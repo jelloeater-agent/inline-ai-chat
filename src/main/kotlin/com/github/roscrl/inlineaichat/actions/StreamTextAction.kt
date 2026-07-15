@@ -582,7 +582,7 @@ class StreamTextAction : AnAction() {
                                     if (editor != null) {
                                         // Use ActionManager to properly execute the action
                                         val actionManager = com.intellij.openapi.actionSystem.ActionManager.getInstance()
-                                        val action = actionManager.getAction("com.github.roscrl.inlineaichat.actions.StreamTextAction")
+                                        val action = actionManager.getAction("com.jelloeater.inlineaichat.actions.StreamTextAction")
 
                                         cleanupRateLimit()
 

@@ -170,7 +170,7 @@ class InlineAIChatSettingsComponent {
     }
 
     private fun getQuickSettingsShortcut(): String {
-        val action = ActionManager.getInstance().getAction("com.github.roscrl.inlineaichat.actions.QuickSettingsAction")
+        val action = ActionManager.getInstance().getAction("com.jelloeater.inlineaichat.actions.QuickSettingsAction")
         return KeymapUtil.getFirstKeyboardShortcutText(action)
     }
 

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.roscrl.inlineaichat</id>
+    <id>com.jelloeater.inlineaichat</id>
     <name>Inline AI Chat</name>
-    <vendor email="your.email@example.com" url="https://github.com/roscrl/inline-ai-chat">roscrl</vendor>
+    <vendor email="jelloeater@users.noreply.github.com" url="https://github.com/jelloeater-agent/inline-ai-chat">jelloeater-agent</vendor>
 
-    <version>1.0.0</version>
     <idea-version since-build="243"/>
 
     <description><![CDATA[
@@ -30,7 +29,16 @@
     ]]></description>
 
     <change-notes><![CDATA[
-        <h3>1.0.0</h3>
+        <h3>0.0.3</h3>
+        <ul>
+            <li>Dynamic model fetching from any OpenAI-compatible API endpoint</li>
+            <li>Support for custom base URLs (Ollama, Headroom, Copilot proxy)</li>
+        </ul>
+        <h3>0.0.2</h3>
+        <ul>
+            <li>Fetch models directly from API instead of hardcoded list</li>
+        </ul>
+        <h3>0.0.1</h3>
         <ul>
             <li>Initial release</li>
             <li>Real-time streaming of AI responses</li>
@@ -47,13 +55,13 @@
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <actions>
-        <action id="com.github.roscrl.inlineaichat.actions.StreamTextAction"
+        <action id="com.jelloeater.inlineaichat.actions.StreamTextAction"
                 class="com.github.roscrl.inlineaichat.actions.StreamTextAction"
                 text="Inline AI Chat"
                 description="Sends file content and streams AI response to the editor">
             <keyboard-shortcut first-keystroke="shift control S" keymap="$default"/>
         </action>
-        <action id="com.github.roscrl.inlineaichat.actions.QuickSettingsAction"
+        <action id="com.jelloeater.inlineaichat.actions.QuickSettingsAction"
                 class="com.github.roscrl.inlineaichat.actions.QuickSettingsAction"
                 text="Inline AI Chat Settings"
                 description="Quick access to Inline AI Chat settings">
@@ -66,7 +74,7 @@
         <applicationConfigurable
                 parentId="tools"
                 instance="com.github.roscrl.inlineaichat.settings.InlineAIChatSettingsConfigurable"
-                id="com.github.roscrl.inlineaichat.settings.InlineAIChatSettingsConfigurable"
+                id="com.jelloeater.inlineaichat.settings.InlineAIChatSettingsConfigurable"
                 displayName="Inline AI Chat Settings"/>
         
         <notificationGroup 
